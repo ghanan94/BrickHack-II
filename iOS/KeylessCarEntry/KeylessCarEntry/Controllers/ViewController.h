@@ -12,6 +12,8 @@
 
 @interface ViewController : UIViewController <CBCentralManagerDelegate, CBPeripheralDelegate>
 
+@property (weak, nonatomic) IBOutlet UILabel *connectedLabel;
+
 @property (nonatomic, strong) CBCentralManager *centralManager;
 @property (nonatomic, strong) CBPeripheral     *keyPeripheral;
 

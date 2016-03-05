@@ -40,6 +40,7 @@
     [peripheral setDelegate:self];
     [peripheral discoverServices:nil];
     self.connected = [NSString stringWithFormat:@"Connected: %@", peripheral.state == CBPeripheralStateConnected ? @"YES" : @"NO"];
+    [self.connectedLabel setText:self.connected];
     NSLog(@"%@", self.connected);
 }
 
@@ -49,12 +50,12 @@
     
     NSString *localName = [advertisementData objectForKey:CBAdvertisementDataLocalNameKey];
     
-    if ([localName length] > 0) {
+    if ([localName length] > 0 && [localName isEqualToString:@"Sandshrew"]) {
         NSLog(@"Found the key peripheral: %@", localName);
-        //[self.centralManager stopScan];
-        //self.keyPeripheral = peripheral;
-        //peripheral.delegate = self;
-        //[self.centralManager connectPeripheral:peripheral options:nil];
+        [self.centralManager stopScan];
+        self.keyPeripheral = peripheral;
+        peripheral.delegate = self;
+        [self.centralManager connectPeripheral:peripheral options:nil];
     }
 }
 
@@ -69,7 +70,7 @@
         
         // Scan for all available CoreBluetooth LE devices
         NSArray *services = @[[CBUUID UUIDWithString:KEY_DEVICE_INFORMATION_SERVICE_UUID]];
-        [central scanForPeripheralsWithServices:nil options:nil];
+        [central scanForPeripheralsWithServices:services options:nil];
     }
     else if ([central state] == CBCentralManagerStateUnauthorized) {
         NSLog(@"CoreBluetooth BLE state is unauthorized");
@@ -94,7 +95,17 @@
 
 // Invoked when you discover the characteristics of a specified service.
 - (void)peripheral:(CBPeripheral *)peripheral didDiscoverCharacteristicsForService:(CBService *)service error:(NSError *)error {
-    
+    // Retrieve Device Information Services for the Manufacturer Name
+    if ([service.UUID isEqual:[CBUUID UUIDWithString:KEY_DEVICE_INFORMATION_SERVICE_UUID]])  { // 4
+        for (CBCharacteristic *aChar in service.characteristics)
+        {
+            NSLog(@"%@", [aChar UUID]);
+            /*if ([aChar.UUID isEqual:[CBUUID UUIDWithString:POLARH7_HRM_MANUFACTURER_NAME_CHARACTERISTIC_UUID]]) {
+                [self.keyPeripheral readValueForCharacteristic:aChar];
+                NSLog(@"Found a device manufacturer name characteristic");
+            }*/
+        }
+    }
 }
 
 // Invoked when you retrieve a specified characteristic's value, or when the peripheral device notifies your app that the characteristic's value has changed.
