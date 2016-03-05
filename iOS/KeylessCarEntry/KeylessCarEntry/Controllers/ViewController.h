@@ -7,9 +7,23 @@
 //
 
 #import <UIKit/UIKit.h>
+@import CoreBluetooth;
+@import QuartzCore;
 
-@interface ViewController : UIViewController
+@interface ViewController : UIViewController <CBCentralManagerDelegate, CBPeripheralDelegate>
 
+@property (nonatomic, strong) CBCentralManager *centralManager;
+@property (nonatomic, strong) CBPeripheral     *keyPeripheral;
+
+// Properties to hold data characteristics for the peripheral device
+@property (nonatomic, strong) NSString   *connected;
+//@property (nonatomic, strong) NSString   *bodyData;
+//@property (nonatomic, strong) NSString   *manufacturer;
+//@property (nonatomic, strong) NSString   *keyDeviceData;
+
+// Instance methods to grab device Manufacturer Name, Body Location
+//- (void) getManufacturerName:(CBCharacteristic *)characteristic;
+//- (void) getBodyLocation:(CBCharacteristic *)characteristic;
 
 @end
 
