@@ -17,6 +17,10 @@ static NSString * const uartRXCharacteristicUUIDString = @"6E400002-B5A3-F393-E0
 @interface ViewController : UIViewController <CBCentralManagerDelegate, CBPeripheralDelegate>
 
 @property (weak, nonatomic) IBOutlet UILabel *connectedLabel;
+@property (weak, nonatomic) IBOutlet UILabel *testLabel;
+
+@property (weak, nonatomic) IBOutlet UIButton *testButton;
+
 
 @property (nonatomic, strong) CBCentralManager *centralManager;
 @property (nonatomic, strong) CBPeripheral     *keyPeripheral;
@@ -27,9 +31,13 @@ static NSString * const uartRXCharacteristicUUIDString = @"6E400002-B5A3-F393-E0
 //@property (nonatomic, strong) NSString   *manufacturer;
 //@property (nonatomic, strong) NSString   *keyDeviceData;
 
+@property (nonatomic, strong) CBCharacteristic *testCharacteristic;
+
 // Instance methods to grab device Manufacturer Name, Body Location
 //- (void) getManufacturerName:(CBCharacteristic *)characteristic;
 //- (void) getBodyLocation:(CBCharacteristic *)characteristic;
+
+- (IBAction)testButtonPressed:(id)sender;
 
 @end
 

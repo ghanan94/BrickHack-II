@@ -26,15 +26,25 @@
 BLEPeripheral blePeripheral;       // BLE Peripheral Device (the board you're programming)
 BLEService batteryService("180F"); // BLE Battery Service
 BLEService deviceInformationService("180A");
+BLEService heartRateService("180D");
 
 // BLE Battery Level Characteristic"
-BLEUnsignedCharCharacteristic batteryLevelChar("2A19", BLERead | BLENotify);  // standard 16-bit characteristic UUID remote clients will be able to get notifications if this characteristic changes
-                                                        
+BLEUnsignedCharCharacteristic batteryLevelChar("2A19", BLERead | BLEWrite | BLENotify);  // standard 16-bit characteristic UUID remote clients will be able to get notifications if this characteristic changes
+BLEUnsignedCharCharacteristic heartRateChar("2A37", BLEWrite);                                                        
 
 int oldBatteryLevel = 0;  // last battery level reading from analog input
 long previousMillis = 0;  // last time the battery level was checked, in ms
 String readString;
 int batteryLevel = 0;
+
+void handler1(BLECentral &central, BLECharacteristic &characteristic) {
+  Serial.print("Input received: ");
+  Serial.println((const char*)characteristic.value());
+}
+
+BLECharacteristicEventHandler ahandler1 = &handler1;
+//BLEPeripheralEventHandler ahandler1 = &handler1;
+
 
 void setup() {
   Serial.begin(9600);    // initialize serial communication
@@ -49,7 +59,13 @@ void setup() {
   blePeripheral.addAttribute(deviceInformationService);
   blePeripheral.addAttribute(batteryService);   // Add the BLE Battery service
   blePeripheral.addAttribute(batteryLevelChar); // add the battery level characteristic
+  blePeripheral.addAttribute(heartRateService);
+  blePeripheral.addAttribute(heartRateChar);
   batteryLevelChar.setValue(0);   // initial value for this characteristic
+  heartRateChar.setValue(0);
+  
+  heartRateChar.setEventHandler(BLEWritten, ahandler1);
+  //blePeripheral.setEventHandler(BLEDisconnected, ahandler1);
 
   /* Now activate the BLE device.  It will start continuously transmitting BLE
      advertising packets and will be visible to remote BLE central devices

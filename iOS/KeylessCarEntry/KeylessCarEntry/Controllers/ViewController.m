@@ -11,6 +11,7 @@
 #define KEY_BATTERY_SERVICE_UUID @"180F"
 
 #define KEY_BATTERY_LEVEL_CHARACTERISTIC_UUID @"2A19"
+#define KEY_HEART_RATE_MEASUREMENT_CHARACTERISTIC_UUID @"2A37"
 
 #import "ViewController.h"
 
@@ -53,6 +54,7 @@
     
     self.connected = [NSString stringWithFormat:@"Connected: %@", peripheral.state == CBPeripheralStateConnected ? @"YES" : @"NO"];
     [self.connectedLabel setText:self.connected];
+    [self.centralManager cancelPeripheralConnection:self.keyPeripheral];
     self.keyPeripheral = nil;
     
     // Scan for all available CoreBluetooth LE devices again
@@ -82,6 +84,14 @@
 // method called whenever the device state changes.
 - (void)centralManagerDidUpdateState:(CBCentralManager *)central {
     // Determine the state of the peripheral (ios device should be i think)
+    self.connected = @"Connected: NO";
+    [self.connectedLabel setText:self.connected];
+    if (self.keyPeripheral) {
+        [self.centralManager cancelPeripheralConnection:self.keyPeripheral];
+    }
+    self.keyPeripheral = nil;
+    
+    
     if ([central state] == CBCentralManagerStatePoweredOff) {
         NSLog(@"CoreBluetooth BLE hardware is powered off");
     }
@@ -118,17 +128,20 @@
     // Retrieve Device Information Services for the Manufacturer Name
     NSLog(@"Service: %@", service.UUID);
     
-    if ([service.UUID isEqual:[CBUUID UUIDWithString:KEY_BATTERY_SERVICE_UUID]])  { // 4
+    //if ([service.UUID isEqual:[CBUUID UUIDWithString:KEY_BATTERY_SERVICE_UUID]])  { // 4
         for (CBCharacteristic *aChar in service.characteristics)
         {
             NSLog(@"Characteristic: %@", [aChar UUID]);
             if ([aChar.UUID isEqual:[CBUUID UUIDWithString:KEY_BATTERY_LEVEL_CHARACTERISTIC_UUID]]) {
                 //[self.keyPeripheral readValueForCharacteristic:aChar];
                 [self.keyPeripheral setNotifyValue:YES forCharacteristic:aChar];
-                NSLog(@"Found a characteristic");
+                NSLog(@"Found a Battery Level characteristic");
+            } else if ([aChar.UUID isEqual:[CBUUID UUIDWithString:KEY_HEART_RATE_MEASUREMENT_CHARACTERISTIC_UUID]]) {
+                self.testCharacteristic = aChar;
+                NSLog(@"Found a HR measurement characteristic");
             }
         }
-    }
+    //}
 }
 
 - (void)peripheral:(CBPeripheral *)peripheral didUpdateNotificationStateForCharacteristic:(CBCharacteristic *)characteristic error:(NSError *)error {
@@ -146,9 +159,28 @@
     if ([characteristic.UUID isEqual:[CBUUID UUIDWithString:KEY_BATTERY_LEVEL_CHARACTERISTIC_UUID]]) { // 1
         // Get the battery level
         NSData *data = [characteristic value];
-        
+        [self.testLabel setText:[[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding]];
+        [peripheral writeValue:data forCharacteristic:self.testCharacteristic type:CBCharacteristicWriteWithoutResponse];
+        //NSLog(@"Sent Battery Level Data: %@, to peripheral", data);
         NSLog(@"Battery Level Data: %@", data);
     }
 }
+
+- (IBAction)testButtonPressed:(id)sender {
+    NSData* data = (NSData *)@39;
+    CBMutableCharacteristic *interestingChar = [[CBMutableCharacteristic alloc] initWithType:[CBUUID UUIDWithString:KEY_BATTERY_LEVEL_CHARACTERISTIC_UUID] properties:nil value:data permissions:(CBAttributePermissionsReadable | CBAttributePermissionsWriteable)];
+    //[self.keyPeripheral writeValue:data forCharacteristic:interestingChar type:CBCharacteristicWriteWithoutResponse];
+    
+    [self.keyPeripheral readValueForCharacteristic:self.testCharacteristic];
+    [self.keyPeripheral writeValue:data forCharacteristic:self.testCharacteristic type:CBCharacteristicWriteWithoutResponse];
+    [self.keyPeripheral readValueForCharacteristic:self.testCharacteristic];
+}
+
+- (void)peripheral:(CBPeripheral *)peripheral didWriteValueForCharacteristic:(CBCharacteristic *)characteristic error:(NSError *)error {
+    if (error) {
+        NSLog(@"Error writing characteristic value: %@", error);
+    }
+}
+
 
 @end

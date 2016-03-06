@@ -29,16 +29,33 @@
                                 <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" ambiguous="YES" misplaced="YES" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="l61-gy-XoE">
+                                <rect key="frame" x="279" y="197" width="42" height="21"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <button opaque="NO" contentMode="scaleToFill" ambiguous="YES" misplaced="YES" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="3cZ-rN-0tc">
+                                <rect key="frame" x="277" y="232" width="46" height="30"/>
+                                <state key="normal" title="Button"/>
+                                <connections>
+                                    <action selector="testButtonPressed:" destination="BYZ-38-t0r" eventType="touchUpInside" id="v4G-dG-joX"/>
+                                </connections>
+                            </button>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                         <constraints>
+                            <constraint firstItem="l61-gy-XoE" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="0hQ-qy-Ff0"/>
                             <constraint firstItem="LXH-BD-ZU0" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="PgB-oT-3RW"/>
                             <constraint firstItem="CeV-8o-kid" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="b4m-Tx-bp0"/>
+                            <constraint firstItem="3cZ-rN-0tc" firstAttribute="centerX" secondItem="8bC-Xf-vdC" secondAttribute="centerX" id="vOD-1A-WFZ"/>
                         </constraints>
                     </view>
                     <navigationItem key="navigationItem" id="tBV-a9-blJ"/>
                     <connections>
                         <outlet property="connectedLabel" destination="LXH-BD-ZU0" id="b4o-6v-2Gc"/>
+                        <outlet property="testButton" destination="3cZ-rN-0tc" id="eR4-7H-7rY"/>
+                        <outlet property="testLabel" destination="l61-gy-XoE" id="g13-xD-QoL"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
