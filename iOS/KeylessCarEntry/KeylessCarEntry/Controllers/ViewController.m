@@ -135,6 +135,16 @@
             if ([aChar.UUID isEqual:[CBUUID UUIDWithString:KEYLESS_ENTRY_DEVICE_KEY_CHARACTERISTIC_UUID]]) {
                 self.testCharacteristic = aChar;
                 NSLog(@"Found a keyless entry device key characteristic");
+                
+                NSString *key = @"San";
+                unsigned char charString[[key length]];
+                
+                for (int i = 0; i < [key length]; ++i) {
+                    charString[i] = (unsigned char)[key characterAtIndex:i];
+                }
+                
+                NSData *data = [NSData dataWithBytes:charString length:[key length]];
+                [self.keyPeripheral writeValue:data forCharacteristic:self.testCharacteristic type:CBCharacteristicWriteWithResponse];
             } else if ([aChar.UUID isEqual:[CBUUID UUIDWithString:KEYLESS_ENTRY_STATUS_CODE_CHARACTERISTIC_UUID]]) {
                 [self.keyPeripheral readValueForCharacteristic:aChar];
                 [self.keyPeripheral setNotifyValue:YES forCharacteristic:aChar];
