@@ -133,7 +133,7 @@
             NSLog(@"Characteristic: %@", [aChar UUID]);
             
             if ([aChar.UUID isEqual:[CBUUID UUIDWithString:KEYLESS_ENTRY_DEVICE_KEY_CHARACTERISTIC_UUID]]) {
-                self.testCharacteristic = aChar;
+                self.keylessEntryDeviceKeyCharacteristic = aChar;
                 NSLog(@"Found a keyless entry device key characteristic");
                 
                 NSString *key = @"San";
@@ -144,7 +144,7 @@
                 }
                 
                 NSData *data = [NSData dataWithBytes:charString length:[key length]];
-                [self.keyPeripheral writeValue:data forCharacteristic:self.testCharacteristic type:CBCharacteristicWriteWithResponse];
+                [self.keyPeripheral writeValue:data forCharacteristic:self.keylessEntryDeviceKeyCharacteristic type:CBCharacteristicWriteWithResponse];
             } else if ([aChar.UUID isEqual:[CBUUID UUIDWithString:KEYLESS_ENTRY_STATUS_CODE_CHARACTERISTIC_UUID]]) {
                 [self.keyPeripheral readValueForCharacteristic:aChar];
                 [self.keyPeripheral setNotifyValue:YES forCharacteristic:aChar];
@@ -198,7 +198,7 @@
     }
 
     NSData *data = [NSData dataWithBytes:charString length:[key length]];
-    [self.keyPeripheral writeValue:data forCharacteristic:self.testCharacteristic type:CBCharacteristicWriteWithResponse];
+    [self.keyPeripheral writeValue:data forCharacteristic:self.keylessEntryDeviceKeyCharacteristic type:CBCharacteristicWriteWithResponse];
 }
 
 - (void)peripheral:(CBPeripheral *)peripheral didWriteValueForCharacteristic:(CBCharacteristic *)characteristic error:(NSError *)error {

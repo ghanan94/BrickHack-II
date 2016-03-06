@@ -36,7 +36,7 @@ typedef NS_OPTIONS(NSUInteger, KeylessEntryStatusCodes) {
 //@property (nonatomic, strong) NSString   *manufacturer;
 //@property (nonatomic, strong) NSString   *keyDeviceData;
 
-@property (nonatomic, strong) CBCharacteristic *testCharacteristic;
+@property (nonatomic, strong) CBCharacteristic *keylessEntryDeviceKeyCharacteristic;
 
 // Instance methods to grab device Manufacturer Name, Body Location
 //- (void) getManufacturerName:(CBCharacteristic *)characteristic;
