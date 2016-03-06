@@ -23,8 +23,8 @@ BLEService keylessEntryService("CADE0000-F78F-4F65-846A-C4DC27285BA3"); // Custo
 BLEService deviceInformationService("180A");
 BLEUnsignedLongCharacteristic keylessEntryMobileDeviceKeyChar("CADE0001-F78F-4F65-846A-C4DC27285BA3", BLEWrite);
 BLEUnsignedLongCharacteristic keylessEntryStatusCodeChar("CADE0002-F78F-4F65-846A-C4DC27285BA3", BLERead | BLENotify);
-bool authenticated = false;
-bool locked = false;
+volatile bool authenticated = false;
+volatile bool locked = false;
 
 void setup() {
   //analogWrite(0, 255);
@@ -33,6 +33,7 @@ void setup() {
   stepper.setSpeed(50);
 
   myservo.attach(12);
+  myservo.write(60);
   
   // put your setup code here, to run once:
   Serial.begin(9600);    // initialize serial communication
@@ -77,10 +78,10 @@ void loop() {
 
     while (central.connected()) {
       if (authenticated && locked) {
-        for(int i = 0; i < 10000; i++) {
+        for(int i = 0; i < 250; i++) {
           //int val = analogRead(0);
           //Serial.println(val - previous);
-          //stepper.step(val - previous);
+          stepper.step(1);
           //previous = val;
         }
       
@@ -97,17 +98,17 @@ void loop() {
     Serial.print("Disconnected from central: ");
     Serial.println(central.address());
 
-    for(int i = 0; i < 10000; i++) {
-      //int val = analogRead(0);
-      //Serial.println(previous - val);
-      //stepper.step(previous - val);
-      //previous = val;
-    }
-  
     myservo.write(5);
     delay(2000);   
     myservo.write(60);
     locked = true;
+    
+    for(int i = 0; i < 250; i++) {
+      //int val = analogRead(0);
+      //Serial.println(previous - val);
+      stepper.step(-1);
+      //previous = val;
+    }
   }
 }
 
