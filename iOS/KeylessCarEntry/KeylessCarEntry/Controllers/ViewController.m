@@ -160,20 +160,15 @@
         // Get the battery level
         NSData *data = [characteristic value];
         [self.testLabel setText:[[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding]];
-        [peripheral writeValue:data forCharacteristic:self.testCharacteristic type:CBCharacteristicWriteWithoutResponse];
+        //[peripheral writeValue:data forCharacteristic:self.testCharacteristic type:CBCharacteristicWriteWithoutResponse];
         //NSLog(@"Sent Battery Level Data: %@, to peripheral", data);
         NSLog(@"Battery Level Data: %@", data);
     }
 }
 
 - (IBAction)testButtonPressed:(id)sender {
-    NSData* data = (NSData *)@39;
-    CBMutableCharacteristic *interestingChar = [[CBMutableCharacteristic alloc] initWithType:[CBUUID UUIDWithString:KEY_BATTERY_LEVEL_CHARACTERISTIC_UUID] properties:nil value:data permissions:(CBAttributePermissionsReadable | CBAttributePermissionsWriteable)];
-    //[self.keyPeripheral writeValue:data forCharacteristic:interestingChar type:CBCharacteristicWriteWithoutResponse];
-    
-    [self.keyPeripheral readValueForCharacteristic:self.testCharacteristic];
-    [self.keyPeripheral writeValue:data forCharacteristic:self.testCharacteristic type:CBCharacteristicWriteWithoutResponse];
-    [self.keyPeripheral readValueForCharacteristic:self.testCharacteristic];
+    NSData* data = [@"C" dataUsingEncoding:NSUTF8StringEncoding];
+    [self.keyPeripheral writeValue:data forCharacteristic:self.testCharacteristic type:CBCharacteristicWriteWithResponse];
 }
 
 - (void)peripheral:(CBPeripheral *)peripheral didWriteValueForCharacteristic:(CBCharacteristic *)characteristic error:(NSError *)error {
