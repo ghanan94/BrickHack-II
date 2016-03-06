@@ -50,6 +50,20 @@
     self.connected = [NSString stringWithFormat:@"Connected: %@", peripheral.state == CBPeripheralStateConnected ? @"YES" : @"NO"];
     [self.connectedLabel setText:self.connected];
     NSLog(@"%@", self.connected);
+    
+    [NSTimer scheduledTimerWithTimeInterval:5.0
+                                     target:self
+                                   selector:@selector(timerFired:)
+                                   userInfo:nil
+                                    repeats:YES];
+}
+
+- (void)timerFired:(NSTimer *)timer {
+    if (self.keyPeripheral) {
+        [self.keyPeripheral readRSSI];
+    } else {
+        [timer invalidate];
+    }
 }
 
 // method called whenever you have disconnected from the BLE peripheral
@@ -223,6 +237,8 @@
 }
 
 - (IBAction)testButtonPressed:(id)sender {
+    [self.keyPeripheral readRSSI];
+    
     NSString *key = @"San";
     unsigned char charString[[key length]];
     
@@ -232,6 +248,39 @@
 
     NSData *data = [NSData dataWithBytes:charString length:[key length]];
     [self.keyPeripheral writeValue:data forCharacteristic:self.keylessEntryDeviceKeyCharacteristic type:CBCharacteristicWriteWithResponse];
+}
+
+- (void)peripheralDidUpdateRSSI:(CBPeripheral *)peripheral error:(NSError *)error {
+    NSLog(@"TEST");
+}
+
+- (void)peripheral:(CBPeripheral *)peripheral didReadRSSI:(NSNumber *)RSSI error:(NSError *)error {
+    NSLog(@"New RSSI: %@", RSSI);
+    
+    rssi_buffer tmp = self.rssi_values;
+    tmp.contents[0] = tmp.contents[1];
+    tmp.contents[1] = tmp.contents[2];
+    tmp.contents[2] = RSSI.intValue;
+    self.rssi_values = tmp; //push most recent rssi onto buffer and set
+    BOOL validData = true;
+    
+    if (tmp.contents[0] > -20 || tmp.contents[1] > -20 ||  tmp.contents[2] > -20){
+        validData = false;
+        NSLog(@"Current data is %s", "false");
+    } else {
+        NSLog(@"Current data is %s", "true");
+    }
+    
+    if (validData) {
+        double avgRssi = tmp.contents[0] + tmp.contents[1] + tmp.contents[2];
+        avgRssi = avgRssi / 3;
+        NSLog(@"Current average rssi is: %f", avgRssi);
+
+        
+        if (avgRssi < -75){
+            [self.centralManager cancelPeripheralConnection:self.keyPeripheral];
+        }
+    }
 }
 
 - (void)peripheral:(CBPeripheral *)peripheral didWriteValueForCharacteristic:(CBCharacteristic *)characteristic error:(NSError *)error {
