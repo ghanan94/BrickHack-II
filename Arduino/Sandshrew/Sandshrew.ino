@@ -1,15 +1,39 @@
 #include <CurieBle.h>
+#include <Stepper.h>
+#include <Servo.h>
 
 const int connectedLedPin = 13;
+
+// change this to the number of steps on your motor
+#define STEPS 64
+
+// create an instance of the stepper class, specifying
+// the number of steps of the motor and the pins it's
+// attached to
+Stepper stepper(STEPS, 8, 9, 10, 11);
+
+// the previous reading from the analog input
+int previous = 0;
+
+Servo myservo;
+int pos = 0;
 
 BLEPeripheral blePeripheral;
 BLEService keylessEntryService("CADE0000-F78F-4F65-846A-C4DC27285BA3"); // Custom Service
 BLEService deviceInformationService("180A");
 BLEUnsignedLongCharacteristic keylessEntryMobileDeviceKeyChar("CADE0001-F78F-4F65-846A-C4DC27285BA3", BLEWrite);
 BLEUnsignedLongCharacteristic keylessEntryStatusCodeChar("CADE0002-F78F-4F65-846A-C4DC27285BA3", BLERead | BLENotify);
-
+bool authenticated = false;
+bool locked = false;
 
 void setup() {
+  //analogWrite(0, 255);
+  
+  // set the speed of the motor to 50 RPMs
+  stepper.setSpeed(50);
+
+  myservo.attach(12);
+  
   // put your setup code here, to run once:
   Serial.begin(9600);    // initialize serial communication
   pinMode(connectedLedPin, OUTPUT);   // initialize the LED on pin 13 to indicate when a central is connected
@@ -52,13 +76,38 @@ void loop() {
     digitalWrite(connectedLedPin, HIGH); // turn on the LED to indicate the connection
 
     while (central.connected()) {
+      if (authenticated && locked) {
+        for(int i = 0; i < 10000; i++) {
+          //int val = analogRead(0);
+          //Serial.println(val - previous);
+          //stepper.step(val - previous);
+          //previous = val;
+        }
       
+        myservo.write(115);
+        delay(2000);     
+        myservo.write(60);
+
+        locked = false;
+      }
     }
 
     // When the central disconnects, turn off the connected led
     digitalWrite(connectedLedPin, LOW);
     Serial.print("Disconnected from central: ");
     Serial.println(central.address());
+
+    for(int i = 0; i < 10000; i++) {
+      //int val = analogRead(0);
+      //Serial.println(previous - val);
+      //stepper.step(previous - val);
+      //previous = val;
+    }
+  
+    myservo.write(5);
+    delay(2000);   
+    myservo.write(60);
+    locked = true;
   }
 }
 
@@ -66,15 +115,28 @@ void connectedHandler(BLECentral &central) {
   Serial.print("Connected, central: ");
   Serial.println(central.address());
 
+  authenticated = false;
+  locked = true;
   keylessEntryStatusCodeChar.setValue(0x00);
 }
 
 void disconnectedHandler(BLECentral &central) {
   Serial.print("Disconnected, central: ");
   Serial.println(central.address());
+
+  authenticated = false;
 }
 
 void keylessEntryMobileDeviceCharacteristicUpdateHandler(BLECentral& central, BLECharacteristic& characteristic) {
   Serial.print("KeylessEntryMobileDeviceCharacteristic updated: ");
-  Serial.println((const char *)characteristic.value());
+  const char *str = (const char *)characteristic.value();
+  Serial.println(str);
+
+  if (strcmp(str, "San") == 0) {
+    authenticated = true;
+  } else {
+    authenticated = false;  
+  }
+  
+  /**/
 }
