@@ -167,7 +167,11 @@
 }
 
 - (IBAction)testButtonPressed:(id)sender {
-    NSData* data = [@"C" dataUsingEncoding:NSUTF8StringEncoding];
+    NSData* data;// = [@"X" dataUsingEncoding:NSUTF8StringEncoding];
+    //NSLog(@"%@", data);
+    unsigned char charString[] = {0x58,0x59};
+    
+    data = [NSData dataWithBytes:charString length:sizeof(charString)];
     [self.keyPeripheral writeValue:data forCharacteristic:self.testCharacteristic type:CBCharacteristicWriteWithResponse];
 }
 

@@ -30,7 +30,7 @@ BLEService heartRateService("180D");
 
 // BLE Battery Level Characteristic"
 BLEUnsignedCharCharacteristic batteryLevelChar("2A19", BLERead | BLEWrite | BLENotify);  // standard 16-bit characteristic UUID remote clients will be able to get notifications if this characteristic changes
-BLEUnsignedCharCharacteristic heartRateChar("2A37", BLEWrite);                                                        
+BLEUnsignedLongCharacteristic heartRateChar("2A37", BLEWrite);                                                        
 
 int oldBatteryLevel = 0;  // last battery level reading from analog input
 long previousMillis = 0;  // last time the battery level was checked, in ms
@@ -39,7 +39,7 @@ int batteryLevel = 0;
 
 void handler1(BLECentral &central, BLECharacteristic &characteristic) {
   Serial.print("Input received: ");
-  Serial.println((const char*)characteristic.value());
+  Serial.println((const char *)characteristic.value());
 }
 
 BLECharacteristicEventHandler ahandler1 = &handler1;
