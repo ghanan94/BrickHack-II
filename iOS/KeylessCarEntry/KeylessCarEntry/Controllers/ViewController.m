@@ -160,18 +160,19 @@
         // Get the battery level
         NSData *data = [characteristic value];
         [self.testLabel setText:[[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding]];
-        //[peripheral writeValue:data forCharacteristic:self.testCharacteristic type:CBCharacteristicWriteWithoutResponse];
-        //NSLog(@"Sent Battery Level Data: %@, to peripheral", data);
         NSLog(@"Battery Level Data: %@", data);
     }
 }
 
 - (IBAction)testButtonPressed:(id)sender {
-    NSData* data;// = [@"X" dataUsingEncoding:NSUTF8StringEncoding];
-    //NSLog(@"%@", data);
-    unsigned char charString[] = {0x58,0x59};
+    NSString *key = @"San";
+    unsigned char charString[[key length]];
     
-    data = [NSData dataWithBytes:charString length:sizeof(charString)];
+    for (int i = 0; i < [key length]; ++i) {
+        charString[i] = (unsigned char)[key characterAtIndex:i];
+    }
+
+    NSData *data = [NSData dataWithBytes:charString length:[key length]];
     [self.keyPeripheral writeValue:data forCharacteristic:self.testCharacteristic type:CBCharacteristicWriteWithResponse];
 }
 
