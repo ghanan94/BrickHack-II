@@ -8,6 +8,9 @@
 
 #define KEY_DEVICE_INFORMATION_SERVICE_UUID @"180A"
 #define KEY_OBJECT_TRANSFER_SERVICE_UUID @"1825"
+#define KEY_BATTERY_SERVICE_UUID @"180F"
+
+#define KEY_BATTERY_LEVEL_CHARACTERISTIC_UUID @"2A19"
 
 #import "ViewController.h"
 
@@ -42,6 +45,23 @@
     self.connected = [NSString stringWithFormat:@"Connected: %@", peripheral.state == CBPeripheralStateConnected ? @"YES" : @"NO"];
     [self.connectedLabel setText:self.connected];
     NSLog(@"%@", self.connected);
+}
+
+// method called whenever you have disconnected from the BLE peripheral
+- (void)centralManager:(CBCentralManager *)central didDisconnectPeripheral:(nonnull CBPeripheral *)peripheral error:(nullable NSError *)error {
+    NSLog(@"Disconnected from peripheral");
+    
+    self.connected = [NSString stringWithFormat:@"Connected: %@", peripheral.state == CBPeripheralStateConnected ? @"YES" : @"NO"];
+    [self.connectedLabel setText:self.connected];
+    self.keyPeripheral = nil;
+    
+    // Scan for all available CoreBluetooth LE devices again
+    NSArray *services = @[[CBUUID UUIDWithString:KEY_DEVICE_INFORMATION_SERVICE_UUID]];
+    [central scanForPeripheralsWithServices:services options:nil];
+}
+
+- (void)centralManager:(CBCentralManager *)central didFailToConnectPeripheral:(nonnull CBPeripheral *)peripheral error:(nullable NSError *)error {
+    NSLog(@"DidFailToConnectPeripheral");
 }
 
 // CBCentralManagerDelegate - This is called with the CBPeripheral class as its main input parameter. This contains most of the information there is to know about a BLE peripheral.
@@ -96,21 +116,39 @@
 // Invoked when you discover the characteristics of a specified service.
 - (void)peripheral:(CBPeripheral *)peripheral didDiscoverCharacteristicsForService:(CBService *)service error:(NSError *)error {
     // Retrieve Device Information Services for the Manufacturer Name
-    if ([service.UUID isEqual:[CBUUID UUIDWithString:KEY_DEVICE_INFORMATION_SERVICE_UUID]])  { // 4
+    NSLog(@"Service: %@", service.UUID);
+    
+    if ([service.UUID isEqual:[CBUUID UUIDWithString:KEY_BATTERY_SERVICE_UUID]])  { // 4
         for (CBCharacteristic *aChar in service.characteristics)
         {
-            NSLog(@"%@", [aChar UUID]);
-            /*if ([aChar.UUID isEqual:[CBUUID UUIDWithString:POLARH7_HRM_MANUFACTURER_NAME_CHARACTERISTIC_UUID]]) {
-                [self.keyPeripheral readValueForCharacteristic:aChar];
-                NSLog(@"Found a device manufacturer name characteristic");
-            }*/
+            NSLog(@"Characteristic: %@", [aChar UUID]);
+            if ([aChar.UUID isEqual:[CBUUID UUIDWithString:KEY_BATTERY_LEVEL_CHARACTERISTIC_UUID]]) {
+                //[self.keyPeripheral readValueForCharacteristic:aChar];
+                [self.keyPeripheral setNotifyValue:YES forCharacteristic:aChar];
+                NSLog(@"Found a characteristic");
+            }
         }
+    }
+}
+
+- (void)peripheral:(CBPeripheral *)peripheral didUpdateNotificationStateForCharacteristic:(CBCharacteristic *)characteristic error:(NSError *)error {
+    if (error) {
+        NSLog(@"Error changing notification state %@: %@", [characteristic UUID], error);
+        return;
     }
 }
 
 // Invoked when you retrieve a specified characteristic's value, or when the peripheral device notifies your app that the characteristic's value has changed.
 - (void)peripheral:(CBPeripheral *)peripheral didUpdateValueForCharacteristic:(CBCharacteristic *)characteristic error:(NSError *)error {
+    // Updated value for battery level received
+    NSLog(@"Charactersiic uuid: %@", characteristic.UUID);
     
+    if ([characteristic.UUID isEqual:[CBUUID UUIDWithString:KEY_BATTERY_LEVEL_CHARACTERISTIC_UUID]]) { // 1
+        // Get the battery level
+        NSData *data = [characteristic value];
+        
+        NSLog(@"Battery Level Data: %@", data);
+    }
 }
 
 @end

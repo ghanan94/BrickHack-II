@@ -24,7 +24,8 @@
 
 /*  */
 BLEPeripheral blePeripheral;       // BLE Peripheral Device (the board you're programming)
-BLEService batteryService("180A"); // BLE Battery Service
+BLEService batteryService("180F"); // BLE Battery Service
+BLEService deviceInformationService("180A");
 
 // BLE Battery Level Characteristic"
 BLEUnsignedCharCharacteristic batteryLevelChar("2A19", BLERead | BLENotify);  // standard 16-bit characteristic UUID remote clients will be able to get notifications if this characteristic changes
@@ -44,7 +45,8 @@ void setup() {
      and can be used by remote devices to identify this BLE device
      The name can be changed but maybe be truncated based on space left in advertisement packet */
   blePeripheral.setLocalName("Sandshrew");
-  blePeripheral.setAdvertisedServiceUuid(batteryService.uuid());  // add the service UUID
+  blePeripheral.setAdvertisedServiceUuid(deviceInformationService.uuid());  // add the service UUID
+  blePeripheral.addAttribute(deviceInformationService);
   blePeripheral.addAttribute(batteryService);   // Add the BLE Battery service
   blePeripheral.addAttribute(batteryLevelChar); // add the battery level characteristic
   batteryLevelChar.setValue(0);   // initial value for this characteristic
