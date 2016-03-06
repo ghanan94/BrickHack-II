@@ -19,6 +19,11 @@ typedef NS_OPTIONS(NSUInteger, KeylessEntryStatusCodes) {
     KeylessEntryStatusCodeError = 0xff
 };
 
+//struct to store rssi values as struct
+typedef struct{
+    int contents[3];
+}rssi_buffer;
+
 @interface ViewController : UIViewController <CBCentralManagerDelegate, CBPeripheralDelegate>
 
 @property (weak, nonatomic) IBOutlet UILabel *connectedLabel;
@@ -32,6 +37,7 @@ typedef NS_OPTIONS(NSUInteger, KeylessEntryStatusCodes) {
 
 // Properties to hold data characteristics for the peripheral device
 @property (nonatomic, strong) NSString   *connected;
+@property (assign) rssi_buffer rssi_values;
 //@property (nonatomic, strong) NSString   *bodyData;
 //@property (nonatomic, strong) NSString   *manufacturer;
 //@property (nonatomic, strong) NSString   *keyDeviceData;

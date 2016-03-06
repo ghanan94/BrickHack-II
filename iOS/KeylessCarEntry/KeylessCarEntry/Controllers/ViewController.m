@@ -29,6 +29,11 @@
     // Init the central manager
     CBCentralManager *centralManager = [[CBCentralManager alloc] initWithDelegate:self queue:nil];
     self.centralManager = centralManager;
+    
+    //reset buffer for rssi values
+    rssi_buffer tmp;
+    tmp.contents[0] = tmp.contents[1] = tmp.contents[2] = 0;
+    self.rssi_values = tmp;
 }
 
 - (void)didReceiveMemoryWarning {
@@ -53,12 +58,14 @@
     
     self.connected = [NSString stringWithFormat:@"Connected: %@", peripheral.state == CBPeripheralStateConnected ? @"YES" : @"NO"];
     [self.connectedLabel setText:self.connected];
+    [self.statusLabel setText:@"Out of range"];
     [self.centralManager cancelPeripheralConnection:self.keyPeripheral];
     self.keyPeripheral = nil;
     
     // Scan for all available CoreBluetooth LE devices again
     NSArray *services = @[[CBUUID UUIDWithString:KEYLESS_ENTRY_SERVICE_UUID]];
-    [central scanForPeripheralsWithServices:services options:nil];
+    NSDictionary *options = [NSDictionary dictionaryWithObjectsAndKeys:[NSNumber  numberWithBool:YES], CBCentralManagerScanOptionAllowDuplicatesKey, nil];
+    [central scanForPeripheralsWithServices:services options:options];
 }
 
 - (void)centralManager:(CBCentralManager *)central didFailToConnectPeripheral:(nonnull CBPeripheral *)peripheral error:(nullable NSError *)error {
@@ -68,16 +75,40 @@
 // CBCentralManagerDelegate - This is called with the CBPeripheral class as its main input parameter. This contains most of the information there is to know about a BLE peripheral.
 - (void)centralManager:(CBCentralManager *)central didDiscoverPeripheral:(CBPeripheral *)peripheral advertisementData:(NSDictionary *)advertisementData RSSI:(NSNumber *)RSSI {
     //NSLog(@"didDiscoverPeripheral: %@", [NSString stringWithFormat:@"%@", [advertisementData description]]);
-    
     NSString *localName = [advertisementData objectForKey:CBAdvertisementDataLocalNameKey];
     NSLog(@"%@", localName);
     
-    if ([localName length] > 0) {
-        NSLog(@"Found the key peripheral: %@", localName);
-        [self.centralManager stopScan];
-        self.keyPeripheral = peripheral;
-        peripheral.delegate = self;
-        [self.centralManager connectPeripheral:peripheral options:nil];
+    //[self.statusLabel setText:[NSString stringWithFormat:@"%s", "Waiting for data"]];
+    
+    rssi_buffer tmp = self.rssi_values;
+    tmp.contents[0] = tmp.contents[1];
+    tmp.contents[1] = tmp.contents[2];
+    tmp.contents[2] = RSSI.intValue;
+    self.rssi_values = tmp; //push most recent rssi onto buffer and set
+    BOOL validData = true;
+    
+    if (tmp.contents[0] > -20 || tmp.contents[1] > -20 ||  tmp.contents[2] > -20){
+        validData = false;
+        NSLog(@"Current data is %s", "false");
+    } else {
+        NSLog(@"Current data is %s", "true");
+    }
+    
+    if ([localName length] > 0 && validData == true) {
+        double avgRssi = tmp.contents[0] + tmp.contents[1] + tmp.contents[2];
+        avgRssi = avgRssi / 3;
+        NSLog(@"Current average rssi is: %f", avgRssi);
+        //[self.statusLabel setText:[NSString stringWithFormat:@"%f", avgRssi]];
+        
+        if (avgRssi > -65){
+            NSLog(@"Found the key peripheral: %@", localName);
+            [self.centralManager stopScan];
+            self.keyPeripheral = peripheral;
+            peripheral.delegate = self;
+            [self.centralManager connectPeripheral:peripheral options:nil];
+        }
+    } else{
+        //[self.statusLabel setText:[NSString stringWithFormat:@"%s", "Not enough valid data"]];
     }
 }
 
@@ -86,6 +117,7 @@
     // Determine the state of the peripheral (ios device should be i think)
     self.connected = @"Connected: NO";
     [self.connectedLabel setText:self.connected];
+    [self.statusLabel setText:@"Out of range"];
     if (self.keyPeripheral) {
         [self.centralManager cancelPeripheralConnection:self.keyPeripheral];
     }
@@ -100,7 +132,8 @@
         
         // Scan for all available CoreBluetooth LE devices
         NSArray *services = @[[CBUUID UUIDWithString:KEYLESS_ENTRY_SERVICE_UUID]];
-        [central scanForPeripheralsWithServices:services options:nil];
+        NSDictionary *options = [NSDictionary dictionaryWithObjectsAndKeys:[NSNumber  numberWithBool:YES], CBCentralManagerScanOptionAllowDuplicatesKey, nil];
+        [central scanForPeripheralsWithServices:services options:options];
     }
     else if ([central state] == CBCentralManagerStateUnauthorized) {
         NSLog(@"CoreBluetooth BLE state is unauthorized");
