@@ -6,12 +6,10 @@
 //  Copyright © 2016 Surfin' Sandshrew. All rights reserved.
 //
 
-#define KEY_DEVICE_INFORMATION_SERVICE_UUID @"180A"
-#define KEY_OBJECT_TRANSFER_SERVICE_UUID @"1825"
-#define KEY_BATTERY_SERVICE_UUID @"180F"
+#define DEVICE_INFORMATION_SERVICE_UUID @"180A"
+#define KEYLESS_ENTRY_SERVICE_UUID @"CADE0000-F78F-4F65-846A-C4DC27285BA3"
 
-#define KEY_BATTERY_LEVEL_CHARACTERISTIC_UUID @"2A19"
-#define KEY_HEART_RATE_MEASUREMENT_CHARACTERISTIC_UUID @"2A37"
+#define KEYLESS_ENTRY_DEVICE_KEY_CHARACTERISTIC_UUID @"CADE0001-F78F-4F65-846A-C4DC27285BA3"
 
 #import "ViewController.h"
 
@@ -58,7 +56,7 @@
     self.keyPeripheral = nil;
     
     // Scan for all available CoreBluetooth LE devices again
-    NSArray *services = @[[CBUUID UUIDWithString:KEY_DEVICE_INFORMATION_SERVICE_UUID]];
+    NSArray *services = @[[CBUUID UUIDWithString:KEYLESS_ENTRY_SERVICE_UUID]];
     [central scanForPeripheralsWithServices:services options:nil];
 }
 
@@ -71,8 +69,9 @@
     //NSLog(@"didDiscoverPeripheral: %@", [NSString stringWithFormat:@"%@", [advertisementData description]]);
     
     NSString *localName = [advertisementData objectForKey:CBAdvertisementDataLocalNameKey];
+    NSLog(@"%@", localName);
     
-    if ([localName length] > 0 && [localName isEqualToString:@"Sandshrew"]) {
+    if ([localName length] > 0) {
         NSLog(@"Found the key peripheral: %@", localName);
         [self.centralManager stopScan];
         self.keyPeripheral = peripheral;
@@ -99,7 +98,7 @@
         NSLog(@"CoreBluetooth BLE hardware is powered on and ready");
         
         // Scan for all available CoreBluetooth LE devices
-        NSArray *services = @[[CBUUID UUIDWithString:KEY_DEVICE_INFORMATION_SERVICE_UUID]];
+        NSArray *services = @[[CBUUID UUIDWithString:KEYLESS_ENTRY_SERVICE_UUID]];
         [central scanForPeripheralsWithServices:services options:nil];
     }
     else if ([central state] == CBCentralManagerStateUnauthorized) {
@@ -128,20 +127,20 @@
     // Retrieve Device Information Services for the Manufacturer Name
     NSLog(@"Service: %@", service.UUID);
     
-    //if ([service.UUID isEqual:[CBUUID UUIDWithString:KEY_BATTERY_SERVICE_UUID]])  { // 4
-        for (CBCharacteristic *aChar in service.characteristics)
-        {
+    if ([service.UUID isEqual:[CBUUID UUIDWithString:KEYLESS_ENTRY_SERVICE_UUID]])  {
+        for (CBCharacteristic *aChar in service.characteristics) {
             NSLog(@"Characteristic: %@", [aChar UUID]);
-            if ([aChar.UUID isEqual:[CBUUID UUIDWithString:KEY_BATTERY_LEVEL_CHARACTERISTIC_UUID]]) {
-                //[self.keyPeripheral readValueForCharacteristic:aChar];
-                [self.keyPeripheral setNotifyValue:YES forCharacteristic:aChar];
-                NSLog(@"Found a Battery Level characteristic");
-            } else if ([aChar.UUID isEqual:[CBUUID UUIDWithString:KEY_HEART_RATE_MEASUREMENT_CHARACTERISTIC_UUID]]) {
+            
+            if ([aChar.UUID isEqual:[CBUUID UUIDWithString:KEYLESS_ENTRY_DEVICE_KEY_CHARACTERISTIC_UUID]]) {
                 self.testCharacteristic = aChar;
-                NSLog(@"Found a HR measurement characteristic");
+                NSLog(@"Found a keyless entry device key characteristic");
+                
+                /*[self.keyPeripheral readValueForCharacteristic:aChar];
+                [self.keyPeripheral setNotifyValue:YES forCharacteristic:aChar];
+                NSLog(@"Found a Battery Level characteristic");*/
             }
         }
-    //}
+    }
 }
 
 - (void)peripheral:(CBPeripheral *)peripheral didUpdateNotificationStateForCharacteristic:(CBCharacteristic *)characteristic error:(NSError *)error {
@@ -156,12 +155,12 @@
     // Updated value for battery level received
     NSLog(@"Charactersiic uuid: %@", characteristic.UUID);
     
-    if ([characteristic.UUID isEqual:[CBUUID UUIDWithString:KEY_BATTERY_LEVEL_CHARACTERISTIC_UUID]]) { // 1
+    /*if ([characteristic.UUID isEqual:[CBUUID UUIDWithString:KEY_BATTERY_LEVEL_CHARACTERISTIC_UUID]]) { // 1
         // Get the battery level
         NSData *data = [characteristic value];
         [self.testLabel setText:[[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding]];
         NSLog(@"Battery Level Data: %@", data);
-    }
+    }*/
 }
 
 - (IBAction)testButtonPressed:(id)sender {

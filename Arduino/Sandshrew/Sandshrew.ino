@@ -28,6 +28,12 @@ void setup() {
 
   // assign event handler for characteristic
   keylessEntryMobileDeviceKeyChar.setEventHandler(BLEWritten, keylessEntryMobileDeviceCharacteristicUpdateHandler);
+
+   /* Now activate the BLE device.  It will start continuously transmitting BLE
+     advertising packets and will be visible to remote BLE central devices
+     until it receives a new connection */
+  blePeripheral.begin();
+  Serial.println("Bluetooth device active, waiting for connections...");
 }
 
 void loop() {
