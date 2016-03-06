@@ -85,8 +85,8 @@ void loop() {
           //previous = val;
         }
       
-        myservo.write(115);
-        delay(2000);     
+        myservo.write(120);
+        delay(1000);     
         myservo.write(60);
 
         locked = false;
@@ -99,7 +99,7 @@ void loop() {
     Serial.println(central.address());
 
     myservo.write(5);
-    delay(2000);   
+    delay(1000);   
     myservo.write(60);
     locked = true;
     
