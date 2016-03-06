@@ -10,6 +10,7 @@
 #define KEYLESS_ENTRY_SERVICE_UUID @"CADE0000-F78F-4F65-846A-C4DC27285BA3"
 
 #define KEYLESS_ENTRY_DEVICE_KEY_CHARACTERISTIC_UUID @"CADE0001-F78F-4F65-846A-C4DC27285BA3"
+#define KEYLESS_ENTRY_STATUS_CODE_CHARACTERISTIC_UUID @"CADE0002-F78F-4F65-846A-C4DC27285BA3"
 
 #import "ViewController.h"
 
@@ -134,10 +135,10 @@
             if ([aChar.UUID isEqual:[CBUUID UUIDWithString:KEYLESS_ENTRY_DEVICE_KEY_CHARACTERISTIC_UUID]]) {
                 self.testCharacteristic = aChar;
                 NSLog(@"Found a keyless entry device key characteristic");
-                
-                /*[self.keyPeripheral readValueForCharacteristic:aChar];
+            } else if ([aChar.UUID isEqual:[CBUUID UUIDWithString:KEYLESS_ENTRY_STATUS_CODE_CHARACTERISTIC_UUID]]) {
+                [self.keyPeripheral readValueForCharacteristic:aChar];
                 [self.keyPeripheral setNotifyValue:YES forCharacteristic:aChar];
-                NSLog(@"Found a Battery Level characteristic");*/
+                NSLog(@"Found a keyless entry status code characteristic");
             }
         }
     }
@@ -155,12 +156,27 @@
     // Updated value for battery level received
     NSLog(@"Charactersiic uuid: %@", characteristic.UUID);
     
-    /*if ([characteristic.UUID isEqual:[CBUUID UUIDWithString:KEY_BATTERY_LEVEL_CHARACTERISTIC_UUID]]) { // 1
-        // Get the battery level
+    if ([characteristic.UUID isEqual:[CBUUID UUIDWithString:KEYLESS_ENTRY_STATUS_CODE_CHARACTERISTIC_UUID]]) { // 1
         NSData *data = [characteristic value];
-        [self.testLabel setText:[[NSString alloc] initWithData:data encoding:NSUTF8StringEncoding]];
-        NSLog(@"Battery Level Data: %@", data);
-    }*/
+
+        NSString *statusText;
+        const uint8_t *bytes = [data bytes];
+        int statusCode = bytes[0];
+        
+        switch (statusCode) {
+            case KeylessEntryStatusCodeOkay:
+                statusText = @"Okay";
+                break;
+            
+            case KeylessEntryStatusCodeError:
+            default:
+                statusText = @"Error";
+                break;
+        }
+
+        [self.statusLabel setText:statusText];
+        NSLog(@"Keyless Entry Status: %@", statusText);
+    }
 }
 
 - (IBAction)testButtonPressed:(id)sender {

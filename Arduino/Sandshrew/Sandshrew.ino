@@ -6,6 +6,8 @@ BLEPeripheral blePeripheral;
 BLEService keylessEntryService("CADE0000-F78F-4F65-846A-C4DC27285BA3"); // Custom Service
 BLEService deviceInformationService("180A");
 BLEUnsignedLongCharacteristic keylessEntryMobileDeviceKeyChar("CADE0001-F78F-4F65-846A-C4DC27285BA3", BLEWrite);
+BLEUnsignedLongCharacteristic keylessEntryStatusCodeChar("CADE0002-F78F-4F65-846A-C4DC27285BA3", BLERead | BLENotify);
+
 
 void setup() {
   // put your setup code here, to run once:
@@ -20,6 +22,7 @@ void setup() {
   // add service and characteristic
   blePeripheral.addAttribute(keylessEntryService);
   blePeripheral.addAttribute(keylessEntryMobileDeviceKeyChar);
+  blePeripheral.addAttribute(keylessEntryStatusCodeChar);
   blePeripheral.addAttribute(deviceInformationService);
 
   // assign event handlers for connected, disconnected to peripheral
@@ -62,6 +65,8 @@ void loop() {
 void connectedHandler(BLECentral &central) {
   Serial.print("Connected, central: ");
   Serial.println(central.address());
+
+  keylessEntryStatusCodeChar.setValue(0x00);
 }
 
 void disconnectedHandler(BLECentral &central) {
