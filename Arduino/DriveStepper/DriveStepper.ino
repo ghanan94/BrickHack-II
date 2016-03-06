@@ -25,7 +25,6 @@ int i = 0;
 void setup() {
   // set the speed of the motor to 30 RPMs
   stepper.setSpeed(50);
-  
 }
 
 void loop() {
@@ -34,10 +33,10 @@ void loop() {
   Serial.println(val);
   // move a number of steps equal to the change in the
   // sensor reading
-  if( i < 10000){
+  if( i < 1000){
     stepper.step(val - previous);
   }
-  else if (i >= 10000 && i < 20000){
+  else if (i >= 1000 && i < 2000){
     stepper.step(previous - val);
   }
 
